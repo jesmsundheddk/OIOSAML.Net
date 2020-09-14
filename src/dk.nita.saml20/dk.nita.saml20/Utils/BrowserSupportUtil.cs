@@ -47,7 +47,7 @@ namespace dk.nita.saml20.Utils
         {
             string regex = @"\(iP.+; CPU .*OS (\d+)[_\d]*.*\) AppleWebKit\/";
             // Extract digits from first capturing group.
-            return Regex.Match(useragent, regex).Value == intToString(major);
+            return Regex.Match(useragent, regex).Groups[1].Value == intToString(major);
         }
 
         private static bool isMacosxVersion(int major, int minor, string useragent)
