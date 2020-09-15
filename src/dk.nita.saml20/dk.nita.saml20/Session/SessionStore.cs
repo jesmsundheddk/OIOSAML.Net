@@ -10,6 +10,8 @@ namespace dk.nita.saml20.Session
     {
         static SessionStore()
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"Create session store");
+
             var type = FederationConfig.GetConfig().SessionType;
             if (!string.IsNullOrEmpty(type))
             {
@@ -54,11 +56,13 @@ namespace dk.nita.saml20.Session
                 if (HttpContext.Current != null)
                 {
                     var sessionId = GetSessionIdFromCookie();
-
+                    
                     if (sessionId.HasValue)
                     {
                         return new UserSession(SessionStoreProvider, sessionId.Value);
                     }
+
+                    Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"CurrentSession is null: {sessionId.HasValue} {(sessionId.HasValue ? sessionId.Value: Guid.Empty)}");
                 }
 
                 return null;
@@ -73,9 +77,9 @@ namespace dk.nita.saml20.Session
             }
 
             var sessionId = GetSessionIdFromCookie();
-
+            
             if (!sessionId.HasValue)
-            {
+            {                
                 WriteSessionCookie();
             }
         }
@@ -104,8 +108,10 @@ namespace dk.nita.saml20.Session
         {
             HttpCookie httpCookie = HttpContext.Current.Request.Cookies[GetSessionCookieName()];
             if (httpCookie != null)
+            {
+                Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"GetSessionIdFromCookie() {httpCookie.Value}");
                 return new Guid(httpCookie.Value);
-
+            }
             return null;
         }
 
@@ -132,6 +138,7 @@ namespace dk.nita.saml20.Session
                 httpCookie.SameSite = SameSiteMode.None;
             }
 
+            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"WriteSessionCookie() {httpCookie.Name} {httpCookie.SameSite} {httpCookie.Value} {httpCookie.Expires}");
             HttpContext.Current.Response.Cookies.Add(httpCookie); // When a cookie is added to the response it is automatically added to the request. Thus, SessionId is available immeditly when reading cookies from the request.
         }
 

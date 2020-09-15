@@ -208,6 +208,8 @@ namespace dk.nita.saml20.protocol
 
             if (idpEndpoint == null)
             {
+                Trace.TraceData(TraceEventType.Information, "~ idpEndpoint is null");
+
                 //Display a page to the user where she can pick the IDP
                 SelectSaml20IDP page = new SelectSaml20IDP();
                 page.ProcessRequest(context);
@@ -658,8 +660,6 @@ namespace dk.nita.saml20.protocol
             IDPEndPointElement destination =
                 DetermineEndpointConfiguration(SAMLBinding.REDIRECT, idpEndpoint.SSOEndpoint, idpEndpoint.metadata.SSOEndpoints());
 
-
-
             request.Destination = destination.Url;
 
             bool isPassive;
@@ -692,6 +692,8 @@ namespace dk.nita.saml20.protocol
 
             //Save request message id to session
             SessionStore.CurrentSession[SessionConstants.ExpectedInResponseTo] = request.ID;
+            
+            Trace.TraceData(TraceEventType.Information, $"SessionStore.CurrentSession[SessionConstants.ExpectedInResponseTo] = {SessionStore.CurrentSession[SessionConstants.ExpectedInResponseTo]}");
 
             var shaHashingAlgorithm = SignatureProviderFactory.ValidateShaHashingAlgorithm(idpEndpoint.ShaHashingAlgorithm);
             if (destination.Binding == SAMLBinding.REDIRECT)

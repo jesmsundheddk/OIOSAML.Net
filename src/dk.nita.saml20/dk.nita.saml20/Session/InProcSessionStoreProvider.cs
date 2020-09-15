@@ -1,4 +1,5 @@
-﻿using System;
+﻿using dk.nita.saml20.Utils;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
@@ -43,6 +44,8 @@ namespace dk.nita.saml20.Session
 
         private void Cleanup(object state)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"Cleanup");
+
             try
             {
                 foreach (var s in _sessions)
@@ -50,6 +53,7 @@ namespace dk.nita.saml20.Session
                     if (s.Value.Timestamp + _sessionTimeout < DateTime.UtcNow)
                     {
                         Session d;
+                        Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~_sessions.TryRemove({s.Key})");
                         _sessions.TryRemove(s.Key, out d);
                     }
                 }
@@ -60,6 +64,7 @@ namespace dk.nita.saml20.Session
                     if (!_sessions.ContainsKey(ua.Key))
                     {
                         string d;
+                        Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~_userAssociations.TryRemove({ua.Key})");
                         _userAssociations.TryRemove(ua.Key, out d);
                     }
                 }
@@ -130,17 +135,20 @@ namespace dk.nita.saml20.Session
         bool ISessionStoreProvider.DoesSessionExists(Guid sessionId)
         {
             Session session;
+            
             if (_sessions.TryGetValue(sessionId, out session) && session.Properties.Any())
             {
                 session.UpdateTimestamp();
                 return true;
             }
 
+            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~DoesSessionExists: {sessionId}, {session == null}, {session != null && session.Properties.Any()}");
             return false;
         }
 
         void ISessionStoreProvider.Initialize(TimeSpan sessionTimeout, ISessionValueFactory sessionValueFactory)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~Initialize");
             _sessionTimeout = sessionTimeout;
         }
     }
