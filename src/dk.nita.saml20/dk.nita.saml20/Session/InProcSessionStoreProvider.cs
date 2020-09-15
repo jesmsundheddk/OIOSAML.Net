@@ -44,7 +44,7 @@ namespace dk.nita.saml20.Session
 
         private void Cleanup(object state)
         {
-            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"Cleanup");
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"Cleanup");
 
             try
             {
@@ -53,7 +53,7 @@ namespace dk.nita.saml20.Session
                     if (s.Value.Timestamp + _sessionTimeout < DateTime.UtcNow)
                     {
                         Session d;
-                        Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~_sessions.TryRemove({s.Key})");
+                        Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"_sessions.TryRemove({s.Key})");
                         _sessions.TryRemove(s.Key, out d);
                     }
                 }
@@ -64,7 +64,7 @@ namespace dk.nita.saml20.Session
                     if (!_sessions.ContainsKey(ua.Key))
                     {
                         string d;
-                        Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~_userAssociations.TryRemove({ua.Key})");
+                        Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"_userAssociations.TryRemove({ua.Key})");
                         _userAssociations.TryRemove(ua.Key, out d);
                     }
                 }
@@ -77,6 +77,7 @@ namespace dk.nita.saml20.Session
 
         void ISessionStoreProvider.SetSessionProperty(Guid sessionId, string key, object value)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"SetSessionProperty({sessionId}, {key}, {value})");
             var session = _sessions.GetOrAdd(sessionId, new Session());
             session.UpdateTimestamp();
             session.Properties.AddOrUpdate(key, value, (k,e) => value);
@@ -84,6 +85,7 @@ namespace dk.nita.saml20.Session
 
         void ISessionStoreProvider.RemoveSessionProperty(Guid sessionId, string key)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"RemoveSessionProperty({sessionId}, {key})");
             Session session;
             if (_sessions.TryGetValue(sessionId, out session))
             {
@@ -96,6 +98,7 @@ namespace dk.nita.saml20.Session
 
         object ISessionStoreProvider.GetSessionProperty(Guid sessionId, string key)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"GetSessionProperty({sessionId}, {key})");
             Session session;
             if (_sessions.TryGetValue(sessionId, out session))
             {
@@ -113,11 +116,13 @@ namespace dk.nita.saml20.Session
 
         void ISessionStoreProvider.AssociateUserIdWithSessionId(string userId, Guid sessionId)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"GetSessionProperty({userId}, {sessionId})");
             _userAssociations.AddOrUpdate(sessionId, userId, (k, e) => userId);
         }
 
         void ISessionStoreProvider.AbandonSessionsAssociatedWithUserId(string userId)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"AbandonSessionsAssociatedWithUserId({userId})");
             var sessions = _userAssociations
                 .Where(x => x.Value == userId)
                 .Select(x => x.Key)
@@ -134,6 +139,7 @@ namespace dk.nita.saml20.Session
 
         bool ISessionStoreProvider.DoesSessionExists(Guid sessionId)
         {
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"DoesSessionExists({sessionId})");
             Session session;
             
             if (_sessions.TryGetValue(sessionId, out session) && session.Properties.Any())
@@ -142,13 +148,13 @@ namespace dk.nita.saml20.Session
                 return true;
             }
 
-            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~DoesSessionExists: {sessionId}, {session == null}, {session != null && session.Properties.Any()}");
+            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"DoesSessionExists: {sessionId}, {session == null}, {session != null && session.Properties.Any()}");
             return false;
         }
 
         void ISessionStoreProvider.Initialize(TimeSpan sessionTimeout, ISessionValueFactory sessionValueFactory)
         {
-            Trace.TraceData(System.Diagnostics.TraceEventType.Information, $"~Initialize");
+            Trace.TraceData(System.Diagnostics.TraceEventType.Verbose, $"ISessionStoreProvider.Initialize: {sessionTimeout}");
             _sessionTimeout = sessionTimeout;
         }
     }
